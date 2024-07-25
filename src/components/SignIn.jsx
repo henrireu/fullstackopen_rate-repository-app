@@ -1,6 +1,10 @@
-import { View, TextInput, Button, Alert, StyleSheet } from 'react-native';
+import { View, TextInput, Button, StyleSheet } from 'react-native';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
+import { useNavigate } from 'react-router-native';
+
+import { useSignIn } from '../hooks/useSignIn';
+import useAuthStorage from '../hooks/useAuthStorage';
 
 import Text from './Text';
 
@@ -14,17 +18,29 @@ const validationSchema = yup.object().shape({
 });
 
 const SignIn = () => {
+  const [signIn] = useSignIn();
+  const authStorage = useAuthStorage();
+  const navigate = useNavigate();
+
   const formik = useFormik({
     initialValues: {
       username: '',
       password: '',
     },
     validationSchema,
-    onSubmit: values => {
-      const username = values.username
-      const password = values.password
-      Alert.alert(username + " " + password)
-    }
+    onSubmit: async (values) => {
+      const { username, password } = values;
+
+      try {
+        const { data } = await signIn({ username, password })
+        const token = await authStorage.getAccessToken() 
+        if(token) {
+          navigate("/");
+        }
+      } catch (e) {
+        console.log(e)  
+      }
+    },
   })
 
   return (
