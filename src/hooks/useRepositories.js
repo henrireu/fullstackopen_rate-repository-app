@@ -2,9 +2,27 @@ import { useQuery } from '@apollo/client';
 
 import { GET_REPOSITORIES } from '../graphql/queries';
 
-const useRepositories = () => {
+const useRepositories = (listOrder, keyword) => {
+  console.log(keyword)
+
+  let orderByValue = 'CREATED_AT';
+  let orderDirection = 'DESC'
+  if (listOrder === 'lowest') {
+    orderDirection = 'ASC'
+  }
+  if (listOrder === 'highest') {
+    orderDirection = 'DESC'
+  }
+  if (listOrder === 'highest' || listOrder === 'lowest') {
+    orderByValue = "RATING_AVERAGE";
+  }
   const { data, loading, error } = useQuery(GET_REPOSITORIES, {
     fetchPolicy: 'cache-and-network',
+    variables: {
+      orderBy: orderByValue,
+      orderDirection: orderDirection,
+      searchKeyword: keyword,
+    }
   });
 
   if(error) {
@@ -21,24 +39,3 @@ const useRepositories = () => {
 }
 
 export default useRepositories;
-
-/*const useRepositories = () => {
-  const [repositories, setRepositories] = useState();
-  const [loading, setLoading] = useState(false);
-
-  const fetchRepositories = async () => {
-    setLoading(true);
-
-    const response = await fetch('http://192.168.21.155:5000/api/repositories');
-    const json = await response.json();
-
-    setLoading(false);
-    setRepositories(json);
-  };
-
-  useEffect(() => {
-    fetchRepositories();
-  }, []);
-
-  return { repositories, loading, refetch: fetchRepositories };
-};*/

@@ -1,16 +1,41 @@
 import { View, StyleSheet, Image, Pressable } from "react-native";
-import { useNavigate } from "react-router-native";
+import { useQuery } from "@apollo/client";
+import * as Linking from 'expo-linking';
+import { useParams } from "react-router-native";
 
 import Text from "./Text";
 import theme from "../theme";
+import { REPOSITORY_BY_ID } from "../graphql/queries";
+import ReviewList from "./ReviewList";
 
-const RepositoryItem =({ allProps }) => {
-  const navigate = useNavigate();
+const SingleRepositoryItem =() => {
+  const { id } = useParams();
 
-  const modifiedId = allProps.fullName.replace('/', '.');
+  const { loading, error, data } = useQuery(REPOSITORY_BY_ID, {
+    variables: { id: id },
+    fetchPolicy: 'cache-and-network',
+  });
+
+  if (loading) return null;
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  if(data) {
+    console.log(data)
+  }
 
   const handlePress = () => {
-    navigate(`/${modifiedId}`);
+    console.log(id)
+  }
+
+  // eli id näyttäisi olevan fullName mutta / korvattu .
+  const handleLink = () => {
+    if (data) {
+      console.log(data.repository.url);
+      Linking.openURL(data.repository.url);
+    }
   };
 
     return (
@@ -21,20 +46,30 @@ const RepositoryItem =({ allProps }) => {
             <Image
               style={styles.image}
               source={{
-                uri: allProps.ownerAvatarUrl
+                uri: data.repository.ownerAvatarUrl
               }}
             />
             <View style={{ gap: 5}}>
-              <Text fontWeight="bold">Full name: {allProps.fullName}</Text>
-              <Text>Description: {allProps.description}</Text>
+              <Text fontWeight="bold">Full name: {data.repository.fullName}</Text>
+              <Text>Description: {data.repository.description}</Text>
               <View style={styles.blueBG}>
-                <Text color="white">{allProps.language}</Text>
+                <Text color="white">{data.repository.language}</Text>
               </View>
             </View>
           </View>
-          <NumbersView allProps={allProps}/>
+          <NumbersView allProps={data.repository}/>
         </View>
       </Pressable>
+     
+        
+        <Pressable onPress={handleLink}>
+          <View style={{...styles.blueBG, width: '90%', alignSelf: 'center'}}>
+            <Text color="white">Linkki githubiin</Text>
+          </View>
+        </Pressable>
+        <ReviewList id={id}/>
+        
+      
       </>
     );
 };
@@ -104,4 +139,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default RepositoryItem;
+export default SingleRepositoryItem;

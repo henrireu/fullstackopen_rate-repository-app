@@ -10,6 +10,8 @@ import AuthStorageContext from './src/contexts/AuthStorageContext';
 const authStorage = new AuthStorage();
 const apolloClient = createApolloClient(authStorage);
 
+// ei toimi kodin netillä kun ip asetettu urlissa puhelimeen
+
 const App = () => {
   return (
     <>

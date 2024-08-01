@@ -2,6 +2,7 @@ import { StyleSheet, ScrollView, SafeAreaView, Pressable } from 'react-native';
 import Constants from 'expo-constants';
 import { useQuery } from '@apollo/client';
 import { useApolloClient } from '@apollo/client';
+import { useNavigate } from 'react-router-native';
 
 import theme from '../theme';
 import AppBarTab from './AppBarTab';
@@ -10,6 +11,7 @@ import Text from './Text';
 import useAuthStorage from '../hooks/useAuthStorage';
 
 const AppBar = () => {
+  const navigate = useNavigate();
   const { data, loading, error } = useQuery(ME, { 
     fetchPolicy: 'cache-and-network',
   });
@@ -26,6 +28,7 @@ const AppBar = () => {
   const handleLogOut = async () => {
     await authStorage.removeAccessToken()
     apolloClient.resetStore();
+    navigate("/");
   }
 
   return ( 
@@ -33,11 +36,18 @@ const AppBar = () => {
       <ScrollView horizontal contentContainerStyle={styles.scrollViewContent}>
         <AppBarTab text="Repositories" link="/" />
         {data.me === null ? (
-          <AppBarTab text="Sign In" link="/SignIn" />
+          <>
+            <AppBarTab text="Sign In" link="/SignIn" />
+            <AppBarTab text="Sign up" link="/SignUp" />
+          </>
         ) : (
-          <Pressable onPress={handleLogOut}>
-            <Text color="white" fontWeight="bold">Sign out</Text>
-          </Pressable>
+          <>
+            <AppBarTab text="Create a review" link="/ReviewForm" />
+            <AppBarTab text="My reviews" link="/MyReviews" />
+            <Pressable onPress={handleLogOut}>
+              <Text color="white" fontWeight="bold">Sign out</Text>
+            </Pressable>
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
