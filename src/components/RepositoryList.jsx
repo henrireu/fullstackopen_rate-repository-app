@@ -25,10 +25,15 @@ const styles = StyleSheet.create({
  
 const ItemSeparator = () => <View style={styles.separator} />;
 
-export const RepositoryListContainer = ({ repositories, setKeyword }) => {
+export const RepositoryListContainer = ({ repositories, setKeyword, /*infinite scrolling*/ onEndReach,  }) => {
+
   const repositoryNodes = repositories
-    ? repositories.edges.map((edge) => edge.node)
+    ? repositories.map((repository) => repository.node)
     : [];
+
+  /*const repositoryNodes = repositories
+    ? repositories.edges.map((edge) => edge.node)
+    : [];*/
 
   return (
     <>
@@ -37,6 +42,9 @@ export const RepositoryListContainer = ({ repositories, setKeyword }) => {
         renderItem={({item}) => <RepositoryItem allProps={item} />}
         ItemSeparatorComponent={ItemSeparator}
         ListHeaderComponent={<SearchBar setKeyword={setKeyword}/>}
+        /*infinite scrolling */
+        onEndReached={onEndReach}
+        onEndReachedThreshold={0.5} 
       />
     </>
   )
@@ -46,16 +54,29 @@ export const RepositoryListContainer = ({ repositories, setKeyword }) => {
 const RepositoryList = () => {
   const [listOrder, setListOrder] = useState('latest');
   const [ keyword, setKeyword ] = useState('');
-  const { repositories } = useRepositories(listOrder, keyword);
+  //const { repositories } = useRepositories(listOrder, keyword);
+  const { repositories, loading, error, fetchMore } = useRepositories(listOrder, keyword);
+
+  // infinite scrolling
+  const onEndReach = () => {
+    console.log('You reached the end of the list');
+    if (fetchMore) {
+      fetchMore(); 
+    }
+  };
+
+  if (loading) return <Text>Loading...</Text>
+  if (error) return <Text>Error: {error.message}</Text>
 
   return (
     <>
     <OrderMenu listOrder={listOrder} setListOrder={setListOrder}/>
-    <RepositoryListContainer repositories={repositories} setKeyword={setKeyword}/>
+    <RepositoryListContainer repositories={repositories} setKeyword={setKeyword} onEndReach={onEndReach}/>
     </>
   )
    
 };
+
 
 const SearchBar = ({ setKeyword }) => {
   const formik = useFormik({
@@ -70,7 +91,7 @@ const SearchBar = ({ setKeyword }) => {
 
   useEffect(() => {
     setKeyword(value)
-  }, [value]);
+  }, [value, setKeyword]);
 
   return ( 
     <View>
